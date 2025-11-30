@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Administratora</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container mt-5"> <h1 class="text-center mb-4">Panel Administratora</h1>
+
+    <table class="table table-striped table-hover shadow-sm">
+        <thead class="table-dark"> <tr>
+                <th>ID</th>
+                <th>Imię</th>
+                <th>Płeć</th>
+                <th>Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for osoba in ludzie %}
+            <tr>
+                <td>{{ osoba.id }}</td>
+                <td class="fw-bold">{{ osoba.imie }}</td> <td>
+                    {% if osoba.plec == 'Kobieta' %}
+                        <span class="badge bg-danger">Kobieta</span>
+                    {% else %}
+                        <span class="badge bg-primary">Mężczyzna</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="/usun/{{ osoba.id }}" class="btn btn-sm btn-outline-danger">
+                        Usuń
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="text-center mt-4">
+        <a href="/" class="btn btn-success btn-lg">Dodaj nową osobę</a>
+    </div>
+
+</body>
+</html>

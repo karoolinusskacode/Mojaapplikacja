@@ -1,3 +1,4 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy  # 1. Importujemy narzędzie do bazy
 
@@ -5,7 +6,8 @@ app = Flask(__name__)
 
 # 2. KONFIGURACJA BAZY DANYCH
 # Mówimy: "Stwórz plik o nazwie 'uzytkownicy.db' i tam trzymaj dane"
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///uzytkownicy.db'
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'uzytkownicy.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # 3. Uruchamiamy bazę w naszej aplikacji
@@ -66,6 +68,33 @@ def pokaz_baze():
     
     # 2. Wyświetl plik lista.html i przekaż mu tę listę
     return render_template('lista.html', ludzie=wszyscy_ludzie)
+# --- TRASA: EDYCJA (UPDATE) ---
+@app.route('/edytuj/<int:id>', methods=['GET', 'POST'])
+def edytuj_osobe(id):
+    # 1. Szukamy osoby
+    osoba_do_edycji = Osoba.query.get_or_404(id)
+
+    # 2. Jeśli przesłano formularz (POST) -> Zapisujemy zmiany
+    if request.method == 'POST':
+        # Pobieramy nowe imię z formularza
+        nowe_imie = request.form['nowe_imie']
+        
+        # Aktualizujemy imię (i robimy ładne duże litery)
+        osoba_do_edycji.imie = nowe_imie.capitalize()
+        
+        # WAŻNE: Musimy zaktualizować też płeć, bo imię mogło się zmienić!
+        if osoba_do_edycji.imie.endswith('a'):
+            osoba_do_edycji.plec = "Kobieta"
+        else:
+            osoba_do_edycji.plec = "Mężczyzna"
+            
+        # Zapisujemy zmiany w bazie
+        db.session.commit()
+        
+        return redirect('/baza')
+
+    # 3. Jeśli to tylko wejście na stronę (GET) -> Pokazujemy formularz
+    return render_template('edycja.html', osoba=osoba_do_edycji)
 # --- TRASA: USUWANIE (DELETE) ---
 @app.route('/usun/<int:id>')
 def usun_osobe(id):

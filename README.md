@@ -15,4 +15,4 @@ Pozwala na zarządzanie bazą użytkowników, wykrywanie płci na podstawie imie
 - [x] Usuwanie użytkowników z bazy danych
 
 ## 👩‍💻 Autor
-Stworzone przez [Twoje Imię] w ramach nauki Full-Stack Development.
+Stworzone przez karoolinusskacode w ramach nauki Full-Stack Development.

@@ -24,7 +24,7 @@ class Osoba(db.Model):
     id = db.Column(db.Integer, primary_key=True)      # Unikalny numer (1, 2, 3...)
     imie = db.Column(db.String(100), nullable=False)  # Imię (tekst)
     plec = db.Column(db.String(20), nullable=False)   # Płeć (tekst)
-
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     def __repr__(self):
         return f'<Osoba {self.imie}>'
 # Tabela dla Użytkowników (Administratorów)
@@ -103,6 +103,7 @@ def strona_glowna():
     return render_template('formularz.html')
 
 @app.route('/powitanie', methods=['POST'])
+@login_required
 def przetworz_dane():
     imie = request.form['imie']
     
@@ -118,27 +119,32 @@ def przetworz_dane():
     
     # 6. ZAPISYWANIE DO BAZY (To jest nowość!)
     # Tworzymy nowy "wiersz" do naszej tabeli
-    nowa_osoba = Osoba(imie=ladne_imie, plec=plec_wynik)
+    nowa_osoba = Osoba(imie=ladne_imie, plec=plec_wynik, user_id=current_user.id)
     
-    # Dodajemy do "poczekalni"
     db.session.add(nowa_osoba)
-    # Zatwierdzamy (jak przycisk "Save") - dopiero teraz dane lądują w pliku
     db.session.commit()
+
     
     return render_template('wynik.html', 
                            imie_html=ladne_imie, 
                            zwrot_html=zwrot, 
                            plec_html=plec_wynik)
 # --- NOWA TRASA: PANEL ADMINISTRATORA (READ) ---
+# --- TRASA: PANEL ADMINISTRATORA ---
 @app.route('/baza')
 @login_required
 def pokaz_baze():
-    # 1. Magiczne polecenie: "Pobierz WSZYSTKICH z tabeli Osoba"
-    wszyscy_ludzie = Osoba.query.all()
+    # DEBUGOWANIE: Wypisz w terminalu, kto pyta
+    print(f"--- Logowanie do bazy ---")
+    print(f"Kto pyta? {current_user.username} (ID: {current_user.id})")
+
+    # Logika filtrująca
+    moje_wpisy = Osoba.query.filter_by(user_id=current_user.id).all()
     
-    # 2. Wyświetl plik lista.html i przekaż mu tę listę
-    return render_template('lista.html', ludzie=wszyscy_ludzie, uzytkownik=current_user)
-# --- TRASA: EDYCJA (UPDATE) ---
+    # DEBUGOWANIE: Wypisz ile znaleziono
+    print(f"Ile wpisów znaleziono? {len(moje_wpisy)}")
+
+    return render_template('lista.html', ludzie=moje_wpisy, uzytkownik=current_user)
 @app.route('/edytuj/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edytuj_osobe(id):

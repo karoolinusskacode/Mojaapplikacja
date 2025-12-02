@@ -34,8 +34,8 @@ class Osoba(db.Model):
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False) # Login
-    password = db.Column(db.String(150), nullable=False) # Zahaszowane hasło
-# Tabela Historii Czatu
+    password = db.Column(db.String(150), nullable=False)
+    is_paid = db.Column(db.Boolean, default=False) 
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tresc_pytania = db.Column(db.Text, nullable=False)   # Co wpisał uczeń
@@ -212,6 +212,8 @@ def usun_osobe(id):
 @app.route('/kurs', methods=['GET', 'POST'])
 @login_required
 def kurs_ai():
+    if not current_user.is_paid:
+        return redirect('/oferta')
     # 1. Najpierw pobierz starą historię tego użytkownika
     historia = Message.query.filter_by(user_id=current_user.id).all()
     
@@ -258,5 +260,21 @@ def add_header(response):
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
     return response
+# --- TRASA: OFERTA (Widok blokady) ---
+@app.route('/oferta')
+@login_required
+def oferta():
+    return render_template('oferta.html')
+
+# --- TRASA: SYMULACJA ZAKUPU (Tylko do testów!) ---
+@app.route('/symulacja-platnosci', methods=['POST'])
+@login_required
+def symulacja_platnosci():
+    # 1. Zmieniamy status w bazie
+    current_user.is_paid = True
+    db.session.commit()
+    
+    # 2. Przekierowujemy do kursu (teraz już zadziała!)
+    return redirect('/kurs')
 if __name__ == '__main__':
     app.run(debug=True)

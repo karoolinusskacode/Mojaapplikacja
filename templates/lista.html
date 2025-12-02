@@ -2,61 +2,47 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Panel Administratora</title>
+    <title>Panel Ucznia</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
-<body class="container mt-5">
+<body class="bg-light">
 
-    <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-white shadow-sm rounded">
-        <div>
-            <h1 class="h3 m-0">Panel Administratora</h1>
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <h3>Witaj, <span class="text-primary">{{ uzytkownik.username }}</span>! 👋</h3>
+            <a href="/wyloguj" class="btn btn-outline-danger">Wyloguj się</a>
         </div>
-        <div>
-            <span class="me-3 text-muted">Zalogowany jako: <strong>{{ uzytkownik.username }}</strong></span>
+
+        <div class="row g-4">
             
-            <a href="/kurs" class="btn btn-primary btn-sm me-2">🤖 Nauczyciel AI</a>
-            
-            <a href="/wyloguj" class="btn btn-outline-danger btn-sm">Wyloguj się</a>
+            <div class="col-md-6">
+                <div class="card h-100 shadow-sm border-primary">
+                    <div class="card-body text-center p-5">
+                        <div class="display-1 mb-3">🤖</div>
+                        <h2 class="card-title">Mentor AI</h2>
+                        <p class="card-text text-muted mb-4">
+                            Twój osobisty asystent. Zapytaj o kod, błędy lub poproś o wytłumaczenie trudnych pojęć.
+                        </p>
+                        <a href="/kurs" class="btn btn-primary btn-lg w-100">Uruchom Czat</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center p-5">
+                        <div class="display-1 mb-3">📊</div>
+                        <h2 class="card-title">Twoje Postępy</h2>
+                        <p class="card-text text-muted mb-4">
+                            Tutaj w przyszłości pojawią się Twoje statystyki i historia nauki.
+                        </p>
+                        <button class="btn btn-secondary btn-lg w-100" disabled>Wkrótce...</button>
+                    </div>
+                </div>
+            </div>
+
         </div>
-    </div>
-
-    <table class="table table-striped table-hover shadow-sm">
-        <thead class="table-dark">
-            <tr>
-                <th>ID</th>
-                <th>Imię</th>
-                <th>Płeć</th>
-                <th>Akcje</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for osoba in ludzie %}
-            <tr>
-                <td>{{ osoba.id }}</td>
-                <td class="fw-bold">{{ osoba.imie }}</td>
-                <td>
-                    {% if osoba.plec == 'Kobieta' %}
-                        <span class="badge bg-danger">Kobieta</span>
-                    {% else %}
-                        <span class="badge bg-primary">Mężczyzna</span>
-                    {% endif %}
-                </td>
-                <td>
-                    <a href="/edytuj/{{ osoba.id }}" class="btn btn-sm btn-outline-warning me-2">
-                        Edytuj
-                    </a>
-                    <a href="/usun/{{ osoba.id }}" class="btn btn-sm btn-outline-danger">
-                        Usuń
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <div class="text-center mt-4">
-        <a href="/" class="btn btn-success btn-lg">Dodaj nową osobę</a>
     </div>
 
 </body>

@@ -113,7 +113,12 @@ def wyloguj():
 
 @app.route('/')
 def strona_glowna():
-    return render_template('formularz.html')
+    # Jeśli ktoś jest już zalogowany, nie pokazuj mu reklamy, tylko od razu panel
+    if current_user.is_authenticated:
+        return redirect('/baza')
+        
+    # Jeśli nie zalogowany - pokaż Landing Page
+    return render_template('index.html')
 
 @app.route('/powitanie', methods=['POST'])
 @login_required

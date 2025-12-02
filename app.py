@@ -245,6 +245,18 @@ def kurs_ai():
 
     # Przekazujemy historię do HTML
     return render_template('kurs.html', historia_czatu=historia, uzytkownik=current_user)
-
+# --- ZABEZPIECZENIE PRZED COFANIEM (CACHE) ---
+@app.after_request
+def add_header(response):
+    """
+    Ta funkcja mówi przeglądarce: 
+    'Nie zapisuj tej strony w pamięci podręcznej (cache)'.
+    Dzięki temu po wylogowaniu i kliknięciu Wstecz, 
+    przeglądarka będzie musiała przeładować stronę i zobaczy, że nie ma dostępu.
+    """
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
 if __name__ == '__main__':
     app.run(debug=True)

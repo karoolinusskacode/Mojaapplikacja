@@ -4,7 +4,9 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import google.generativeai as genai  # <--- NOWOŚĆfrom flask import Flask, render_template, request, redirect, url_for
-
+import stripe
+stripe.api_key = 'sk_test_51SZjJcAeM0OsBg9Ty5kbPAl31y18uWmwPMd0LeQphlvUZ8GrdU1Mv2TzVLR28iMI2WLEdDkJTAoWqntwHHyCQdry00SwOTYbZ1'
+YOUR_DOMAIN = 'https://karoolinusskacode.pythonanywhere.com'
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'bardzo_tajny_i_trudny_kod_123'
 genai.configure(api_key="AIzaSyBptJKuP0KOP2_lKZjMLmBoYKDki4im1No")
@@ -266,15 +268,45 @@ def add_header(response):
 def oferta():
     return render_template('oferta.html')
 
-# --- TRASA: SYMULACJA ZAKUPU (Tylko do testów!) ---
-@app.route('/symulacja-platnosci', methods=['POST'])
+# --- TRASA: TWORZENIE SESJI PŁATNOŚCI STRIPE ---
+@app.route('/platnosc', methods=['POST'])
 @login_required
-def symulacja_platnosci():
-    # 1. Zmieniamy status w bazie
+def stworz_platnosc():
+    try:
+        # Tworzymy "koszyk" w Stripe
+        checkout_session = stripe.checkout.Session.create(
+            line_items=[
+                {
+                    # Definicja produktu
+                    'price_data': {
+                        'currency': 'pln',
+                        'product_data': {
+                            'name': 'Dostęp do Nauczyciela AI',
+                        },
+                        'unit_amount': 1900, # Cena w groszach! 1900 = 19.00 PLN
+                    },
+                    'quantity': 1,
+                },
+            ],
+            mode='payment',
+            # Gdzie ma wrócić użytkownik po sukcesie?
+            success_url=YOUR_DOMAIN + '/sukces',
+            # Gdzie ma wrócić, jak kliknie Anuluj?
+            cancel_url=YOUR_DOMAIN + '/oferta',
+        )
+    except Exception as e:
+        return str(e)
+
+    # Przekierowujemy użytkownika na stronę Stripe
+    return redirect(checkout_session.url, code=303)
+
+# --- TRASA: SUKCES (Po powrocie ze Stripe) ---
+@app.route('/sukces')
+@login_required
+def sukces():
+    # Tutaj odblokowujemy dostęp!
     current_user.is_paid = True
     db.session.commit()
-    
-    # 2. Przekierowujemy do kursu (teraz już zadziała!)
-    return redirect('/kurs')
+    return render_template('sukces.html') # Zaraz stworzymy ten plik
 if __name__ == '__main__':
     app.run(debug=True)

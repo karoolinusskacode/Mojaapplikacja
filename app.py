@@ -1,11 +1,14 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-import os
-# NOWE IMPORTY:
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+import os
+import google.generativeai as genai  # <--- NOWOŚĆfrom flask import Flask, render_template, request, redirect, url_for
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'bardzo_tajny_i_trudny_kod_123'
+genai.configure(api_key="AIzaSyBptJKuP0KOP2_lKZjMLmBoYKDki4im1No")
+model_ai = genai.GenerativeModel('gemini-2.0-flash')
 # 2. KONFIGURACJA BAZY DANYCH
 # Mówimy: "Stwórz plik o nazwie 'uzytkownicy.db' i tam trzymaj dane"
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -32,7 +35,17 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False) # Login
     password = db.Column(db.String(150), nullable=False) # Zahaszowane hasło
+# Tabela Historii Czatu
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    tresc_pytania = db.Column(db.Text, nullable=False)   # Co wpisał uczeń
+    tresc_odpowiedzi = db.Column(db.Text, nullable=False) # Co odpisało AI
+    
+    # Kto to napisał? (Relacja do User)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
+    def __repr__(self):
+        return f'<Wiadomosc {self.id}>'
 # Funkcja ładująca użytkownika (niezbędna dla Flask-Login)
 @login_manager.user_loader
 def load_user(user_id):
@@ -190,5 +203,43 @@ def usun_osobe(id):
 
     except:
         return "Wystąpił problem podczas usuwania."
+  # --- TRASA: NAUCZYCIEL AI (WERSJA Z DEBUGOWANIEM) ---
+@app.route('/kurs', methods=['GET', 'POST'])
+@login_required
+def kurs_ai():
+    # 1. Najpierw pobierz starą historię tego użytkownika
+    historia = Message.query.filter_by(user_id=current_user.id).all()
+    
+    odpowiedz = ""
+    pytanie = ""
+
+    if request.method == 'POST':
+        pytanie = request.form['pytanie']
+        
+        prompt = "Jesteś nauczycielem programowania. Tłumacz krótko i prosto."
+        full_query = f"{prompt}\n\nUczeń: {pytanie}"
+        
+        try:
+            response = model_ai.generate_content(full_query)
+            odpowiedz = response.text
+            
+            # 2. ZAPISZ DO BAZY
+            nowa_wiadomosc = Message(
+                tresc_pytania=pytanie,
+                tresc_odpowiedzi=odpowiedz,
+                user_id=current_user.id
+            )
+            db.session.add(nowa_wiadomosc)
+            db.session.commit()
+            
+            # Odśwież stronę, żeby pokazać nową wiadomość w historii
+            return redirect('/kurs')
+            
+        except Exception as e:
+            odpowiedz = f"Błąd: {e}"
+
+    # Przekazujemy historię do HTML
+    return render_template('kurs.html', historia_czatu=historia, uzytkownik=current_user)
+
 if __name__ == '__main__':
     app.run(debug=True)

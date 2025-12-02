@@ -5,7 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import google.generativeai as genai  # <--- NOWOŚĆfrom flask import Flask, render_template, request, redirect, url_for
 import stripe
-stripe.api_key = 'sk_test_51SZjJcAeM0OsBg9Ty5kbPAl31y18uWmwPMd0LeQphlvUZ8GrdU1Mv2TzVLR28iMI2WLEdDkJTAoWqntwHHyCQdry00SwOTYbZ1'
+stripe.api_key = ''
 YOUR_DOMAIN = 'https://karoolinusskacode.pythonanywhere.com'
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'bardzo_tajny_i_trudny_kod_123'
